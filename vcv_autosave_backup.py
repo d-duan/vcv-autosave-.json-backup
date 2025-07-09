@@ -32,7 +32,8 @@ try:
                 patch_name = os.path.basename(patch_path).replace('.vcv', '').replace(' ', '_')
 
                 timestamp = datetime.now().strftime("%y%m%d_%H%M%S")
-                new_name = f"{patch_name}_autosave_{timestamp}.json"
+                # ---- CONFIG FILE NAMING ----
+                new_name = f"{timestamp}_autosave_{patch_name}.json"
                 new_path = os.path.join(backup_folder, new_name)
 
                 shutil.copy2(autosave_file, new_path)
