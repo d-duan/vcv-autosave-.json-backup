@@ -3,27 +3,28 @@ import json
 import time
 import shutil
 from datetime import datetime
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
 # ---- CONFIGURE THESE ----
 autosave_file = r"C:\Users\d duan\AppData\Local\Rack2\autosave\patch.json"
 backup_folder = r"C:\Users\d duan\AppData\Local\Rack2\autosave\patch-histories"
+interval = 5 * 60 #seconds
 
-class AutosaveHandler(FileSystemEventHandler):
-    def __init__(self):
-        super().__init__()
-        self.last_backup_time = 0  # in seconds since epoch
-        # ---- CONFIGURE THIS ----
-        self.interval = 5 * 60  # 5 minutes in seconds
+os.makedirs(backup_folder, exist_ok=True)
 
-    def on_modified(self, event):
-        if event.src_path == autosave_file:
+last_backup_time = 0
+last_file_mtime = 0
+
+print(f"watching {autosave_file} ... every {interval//60} min")
+
+try:
+    while True:
+        # get the file's modified time
+        if os.path.exists(autosave_file):
+            file_mtime = os.path.getmtime(autosave_file)
+
+            # only back up if file has changed since last backup and enough time has passed
             now = time.time()
-            if now - self.last_backup_time < self.interval:
-                return  # too soon, skip
-
-            try:
+            if file_mtime != last_file_mtime and now - last_backup_time >= interval:
                 with open(autosave_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
 
@@ -37,26 +38,10 @@ class AutosaveHandler(FileSystemEventHandler):
                 shutil.copy2(autosave_file, new_path)
                 print(f"[+] backed up: {new_name}")
 
-                self.last_backup_time = now
+                last_backup_time = now
+                last_file_mtime = file_mtime
 
-            except Exception as e:
-                print(f"[!] error: {e}")
+        time.sleep(30)  # check every 30 seconds
 
-
-if __name__ == "__main__":
-    # make sure backup folder exists
-    os.makedirs(backup_folder, exist_ok=True)
-
-    event_handler = AutosaveHandler()
-    observer = Observer()
-    observer.schedule(event_handler, path=os.path.dirname(autosave_file), recursive=False)
-    observer.start()
-
-    print("watching for changes... press ctrl+c to stop.")
-
-    try:
-        while True:
-            time.sleep(10)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+except KeyboardInterrupt:
+    print("stopped.")
