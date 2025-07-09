@@ -7,12 +7,22 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # ---- CONFIGURE THESE ----
-autosave_file = r"C:\Users\[usr-name]\AppData\Local\Rack2\autosave\patch.json"
-backup_folder = r"C:\Users\[usr-name]\AppData\Local\Rack2\autosave\patch-histories"
+autosave_file = r"C:\Users\d duan\AppData\Local\Rack2\autosave\patch.json"
+backup_folder = r"C:\Users\d duan\AppData\Local\Rack2\autosave\patch-histories"
 
 class AutosaveHandler(FileSystemEventHandler):
+    def __init__(self):
+        super().__init__()
+        self.last_backup_time = 0  # in seconds since epoch
+        # ---- CONFIGURE THIS ----
+        self.interval = 5 * 60  # 5 minutes in seconds
+
     def on_modified(self, event):
         if event.src_path == autosave_file:
+            now = time.time()
+            if now - self.last_backup_time < self.interval:
+                return  # too soon, skip
+
             try:
                 with open(autosave_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -27,8 +37,11 @@ class AutosaveHandler(FileSystemEventHandler):
                 shutil.copy2(autosave_file, new_path)
                 print(f"[+] backed up: {new_name}")
 
+                self.last_backup_time = now
+
             except Exception as e:
                 print(f"[!] error: {e}")
+
 
 if __name__ == "__main__":
     # make sure backup folder exists
