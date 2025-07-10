@@ -13,5 +13,5 @@ tested on Windows11 LTSC
    * Edit `self.interval` to change the script execute intervals (default 5 minutes).
    * Edit `new_name` to change the nre file naming convention (default YYDDMM_HHMMSS_autosave_[working-vcv-file-name-parsed-from-json-"value"-field].json).
 6. To autostart the `.py` script on boot, edit the `.bat` file to point to the path of the script, then copy vcv_autosave_backup-py_autostart.bat to `C:\Users\[usr-name]\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\`
-  * if you would like to start the script without cmd window staying open, use `pythonw.exe` in the `.bat` file.
-7. Run script.
+    * if you would like to start the script without cmd window staying open, use `pythonw.exe` in the `.bat` file.
+8. Run script.
